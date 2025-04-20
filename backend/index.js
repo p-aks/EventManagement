@@ -38,7 +38,7 @@ app.post('/signup', async (req, res) => {
 
     // Insert user data into PostgreSQL
     const result = await client.query(
-      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *',
       [name, email, hashedPassword, role]
     );
 
