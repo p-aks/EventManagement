@@ -7,7 +7,7 @@ const SignUp = () => {
     name: "",
     email: "",
     password: "",
-    role: "attendee",
+    role: "attendee",  // default role
   });
 
   const handleChange = (e) => {
@@ -21,10 +21,14 @@ const SignUp = () => {
     e.preventDefault();
 
     try {
-      // Replace URL with your backend signup endpoint
-      const response = await axios.post("http://localhost:5000/api/signup", formData);
-      alert("Sign-up successful!");
-      console.log(response.data);
+      // Sending data to the backend signup API using Axios
+      const response = await axios.post("http://localhost:5000/signup", formData);
+
+      if (response.status === 201) {
+        alert("Sign-up successful!");
+        // Optionally, redirect user or clear form
+        setFormData({ name: "", email: "", password: "", role: "attendee" });  // Clear the form
+      }
     } catch (err) {
       console.error(err);
       alert("Sign-up failed!");
