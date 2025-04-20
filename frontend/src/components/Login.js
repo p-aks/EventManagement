@@ -29,7 +29,7 @@ const Login = () => {
 
     try {
       // Make a POST request to the backend API
-      const response = await axios.post("http://localhost:5000/api/login", loginData);
+      const response = await axios.post("http://localhost:5000/login", loginData);
 
       // If login is successful, the backend should return a JWT token
       if (response.data.token) {
