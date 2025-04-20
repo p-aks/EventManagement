@@ -1,47 +1,53 @@
-/* SignUp.css */
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-}
-
-.signup-container {
+  background: linear-gradient(to right, #ff7e5f, #feb47b); /* Gradient background */
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+}
+
+.signup-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
 }
 
 .signup-form {
   background-color: #ffffff;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 420px;
-  text-align: left;
 }
 
 .signup-form h2 {
-  margin-bottom: 25px;
-  font-size: 28px;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
   color: #333333;
   text-align: center;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  width: 100%;
 }
 
 .signup-form label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #444;
-  margin-bottom: 6px;
   display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
 }
 
 .signup-form input,
 .signup-form select {
   width: 100%;
   padding: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;  /* Reduced margin to match login form */
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 16px;
@@ -51,13 +57,14 @@ body {
 
 .signup-form input:focus,
 .signup-form select:focus {
-  border-color: #2575fc;
+  border-color: #feb47b; /* Focus color to match gradient theme */
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
 .signup-form button {
   width: 100%;
   padding: 12px;
-  background-color: #2575fc;
+  background-color: #7bfef3; /* Gradient button color */
   color: white;
   border: none;
   border-radius: 6px;
@@ -68,12 +75,33 @@ body {
 }
 
 .signup-form button:hover {
-  background-color: #1a5fe0;
+  background-color: #5ffffc; /* Hover color */
 }
 
 .signup-form p {
   text-align: center;
-  margin-top: 15px;
-  font-size: 14px;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
   color: #666;
+}
+
+.signup-form a {
+  color: #4299e1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signup-form a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .signup-container {
+    padding: 1rem;
+  }
+  
+  .signup-form {
+    padding: 1.5rem;
+  }
 }
