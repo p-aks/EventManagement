@@ -1,92 +1,93 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const { Client } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-dotenv.config();  // Load environment variables from .env file
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const bodyParser = require("body-parser");
+const { Client } = require("pg");
+require("dotenv").config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
-app.use(express.json());  // Middleware to parse JSON requests
+app.use(bodyParser.json());
 
-// PostgreSQL client setup
+// PostgreSQL setup
 const client = new Client({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  connectionString: process.env.DATABASE_URL || "postgresql://postgres:postgre@localhost:5432/eventmanagement"
 });
-
-// Connect to PostgreSQL database
 client.connect();
 
-// User registration endpoint
-app.post('/signup', async (req, res) => {
+// ==================== SIGN-UP ROUTE ====================
+app.post("/signup", async (req, res) => {
   const { name, email, password, role } = req.body;
 
-  // Check if all fields are provided
-  if (!name || !email || !password || !role) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-
   try {
+    // Check if user already exists
+    const existing = await client.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user data into PostgreSQL
-    const result = await client.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, email, hashedPassword, role]
+    // Insert into DB
+    await client.query(
+      "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)",
+      [name, email, hashedPassword, role.toLowerCase()]
     );
 
-    // Return response
-    res.status(201).json({ message: 'User created', user: result.rows[0] });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error during sign-up" });
   }
 });
 
-// User login endpoint
-app.post('/login', async (req, res) => {
+// ==================== LOGIN ROUTE ====================
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check if the user exists in the database
-    const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: "User not found" });
     }
 
-    // Compare the hashed password with the stored password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "1h" }
+    );
+
+    console.log("Login successful. Role:", user.role);
 
     res.status(200).json({
-      message: 'Login successful', token, user: {
+      message: "Login successful",
+      token,
+      user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
-      } });
+        role: user.role,
+      },
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// Start the server
-const PORT = process.env.PORT || 5000;
+// ==================== START SERVER ====================
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -1,51 +1,51 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./Login.css"; // Optional styling
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState(""); // For success/error messages
-  const [loading, setLoading] = useState(false); // Optional loader
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // For routing
 
-  // Handle email and password input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "email") {
-      setEmail(value);
-    } else if (name === "password") {
-      setPassword(value);
-    }
+    name === "email" ? setEmail(value) : setPassword(value);
   };
 
-  // Handle form submission (login request)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(""); // Reset message
+    setMessage("");
 
     const loginData = { email, password };
 
     try {
       const response = await axios.post("http://localhost:5000/login", loginData);
+      console.log("Full login response:", response);
 
-      // If login is successful
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("role", response.data.user.role);  // Store role for future use
+        console.log("User role:", response.data.user.role);
         setMessage(response.data.message || "Login successful");
 
-        // Redirect to dashboard after a brief pause to show message
         setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1000); // 1 sec delay to show the message
+          // Redirect based on role
+          if (response.data.user.role === "organizer") {
+            navigate("/organizer-dashboard"); // Navigate to organizer dashboard
+          } else if (response.data.user.role === "attendee") {
+            navigate("/attendee-dashboard"); // Navigate to attendee dashboard
+          } else {
+            setMessage("Unknown user role");
+          }
+        }, 1000);
       }
     } catch (err) {
       console.error("Error:", err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setMessage(err.response.data.message);
-      } else {
-        setMessage("Login failed! Please try again.");
-      }
+      setMessage(err?.response?.data?.message || "Login failed! Please try again.");
     } finally {
       setLoading(false);
     }
@@ -75,8 +75,6 @@ const Login = () => {
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
-
-      {/* Show success or error message */}
       {message && <div className="message">{message}</div>}
     </div>
   );

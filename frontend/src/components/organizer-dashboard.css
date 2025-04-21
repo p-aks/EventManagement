@@ -1,0 +1,81 @@
+.organizer-dashboard {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.button-group {
+  display: flex;
+  gap: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.button-group button:hover {
+  background-color: #45a049;
+}
+
+.create-event-form {
+  margin-top: 20px;
+}
+
+.create-event-form .form-group {
+  margin-bottom: 15px;
+}
+
+.create-event-form input,
+.create-event-form select,
+.create-event-form textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+.create-event-form button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.create-event-form button:hover {
+  background-color: #45a049;
+}
+
+.event-listing .filter-group {
+  margin-bottom: 20px;
+}
+
+.event-listing .events {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.event-card {
+  border: 1px solid #ddd;
+  padding: 15px;
+}
+
+.event-details {
+  margin-top: 20px;
+}
+
+.event-details button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.event-details button:hover {
+  background-color: #45a049;
+}
