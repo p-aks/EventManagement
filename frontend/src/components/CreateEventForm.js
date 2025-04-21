@@ -10,13 +10,14 @@ const CreateEventForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const eventData = { title, description, dateTime, location, ticketType };
+
+    const eventData = { title, description, date:dateTime, location, ticket_type:ticketType,  organizer_id:1};
 
     // Send data to backend
-    axios.post("http://localhost:5000/events", eventData)
+    axios
+      .post("http://localhost:5000/events", eventData)
       .then((response) => {
-        console.log("Event created:", response.data);
+        alert("✅ Event created successfully!");
         setTitle("");
         setDescription("");
         setDateTime("");
@@ -24,6 +25,7 @@ const CreateEventForm = () => {
       })
       .catch((error) => {
         console.error("Error creating event:", error);
+        alert("❌ Failed to create event. Please try again.");
       });
   };
 
@@ -31,22 +33,39 @@ const CreateEventForm = () => {
     <div className="create-event-form">
       <h3>Create Event</h3>
       <form onSubmit={handleSubmit}>
-        {/* Form Fields */}
         <div className="form-group">
           <label>Event Title</label>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
         </div>
         <div className="form-group">
           <label>Event Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
         </div>
         <div className="form-group">
           <label>Date/Time</label>
-          <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} required />
+          <input
+            type="datetime-local"
+            value={dateTime}
+            onChange={(e) => setDateTime(e.target.value)}
+            required
+          />
         </div>
         <div className="form-group">
           <label>Location</label>
-          <select value={location} onChange={(e) => setLocation(e.target.value)} required>
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+          >
             <option value="">Select Location</option>
             <option value="physical">Physical</option>
             <option value="virtual">Virtual</option>
@@ -54,7 +73,11 @@ const CreateEventForm = () => {
         </div>
         <div className="form-group">
           <label>Ticket Type</label>
-          <select value={ticketType} onChange={(e) => setTicketType(e.target.value)} required>
+          <select
+            value={ticketType}
+            onChange={(e) => setTicketType(e.target.value)}
+            required
+          >
             <option value="free">Free</option>
             <option value="paid">Paid</option>
           </select>

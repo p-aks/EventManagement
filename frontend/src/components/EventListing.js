@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const EventListing = () => {
-  const [events, setEvents] = useState([]); // State to hold the event data
+  const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState({
     date: "",
     location: "",
@@ -10,11 +10,10 @@ const EventListing = () => {
   });
 
   useEffect(() => {
-    // Fetch events from the backend when the component mounts
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/events"); // Replace with your actual endpoint
-        setEvents(response.data.events); // Assuming backend returns an array of events
+        const response = await axios.get("http://localhost:5000/events");
+        setEvents(response.data); // ✅ Backend sends array directly
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -32,8 +31,10 @@ const EventListing = () => {
 
   const filteredEvents = events.filter((event) => {
     return (
-      (filter.date ? event.event_date.includes(filter.date) : true) &&
-      (filter.location ? event.location.toLowerCase().includes(filter.location.toLowerCase()) : true) &&
+      (filter.date ? event.date.startsWith(filter.date) : true) &&
+      (filter.location
+        ? event.location.toLowerCase().includes(filter.location.toLowerCase())
+        : true) &&
       (filter.price ? event.ticket_type === filter.price : true)
     );
   });
@@ -41,6 +42,8 @@ const EventListing = () => {
   return (
     <div className="event-listing">
       <h3>Event Listing</h3>
+
+      {/* Filters */}
       <div className="filter-group">
         <label>Date:</label>
         <input
@@ -65,18 +68,24 @@ const EventListing = () => {
         </select>
       </div>
 
+      {/* Events Display */}
       <div className="events">
-        {filteredEvents.map((event) => (
-          <div key={event.id} className="event-card">
-            <h4>{event.event_name}</h4>
-            <p>{event.event_date}</p>
-            <p>{event.location}</p>
-            <p>{event.ticket_type}</p>
-            <button>View Details</button>
-          </div>
-        ))}
+        {filteredEvents.length > 0 ? (
+          filteredEvents.map((event) => (
+            <div key={event.id} className="event-card">
+              <h4>{event.title}</h4>
+              <p>Date: {new Date(event.date).toLocaleString()}</p>
+              <p>Location: {event.location}</p>
+              <p>Price: {event.ticket_type}</p>
+              <button>View Details</button>
+            </div>
+          ))
+        ) : (
+          <p>No events found matching the filters.</p>
+        )}
       </div>
     </div>
   );
 };
+
 export default EventListing;
