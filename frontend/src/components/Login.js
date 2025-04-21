@@ -5,7 +5,8 @@ import "./Login.css"; // Optional styling
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // To display errors
+  const [message, setMessage] = useState(""); // For success/error messages
+  const [loading, setLoading] = useState(false); // Optional loader
 
   // Handle email and password input change
   const handleChange = (e) => {
@@ -20,29 +21,33 @@ const Login = () => {
   // Handle form submission (login request)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage(""); // Reset message
 
-    // Prepare the login request payload
-    const loginData = {
-      email,
-      password
-    };
+    const loginData = { email, password };
 
     try {
-      // Make a POST request to the backend API
       const response = await axios.post("http://localhost:5000/login", loginData);
 
-      // If login is successful, the backend should return a JWT token
+      // If login is successful
       if (response.data.token) {
-        // Store the token in local storage
         localStorage.setItem("token", response.data.token);
+        setMessage(response.data.message || "Login successful");
 
-        // Optionally redirect the user (e.g., to a dashboard or home page)
-        window.location.href = "/dashboard"; // Change this as per your flow
+        // Redirect to dashboard after a brief pause to show message
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000); // 1 sec delay to show the message
       }
     } catch (err) {
-      // If there's an error, set the error message
       console.error("Error:", err);
-      setErrorMessage("Login failed! Please check your credentials.");
+      if (err.response && err.response.data && err.response.data.message) {
+        setMessage(err.response.data.message);
+      } else {
+        setMessage("Login failed! Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,11 +71,13 @@ const Login = () => {
           placeholder="Enter your password"
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </form>
 
-      {/* Show error message if login fails */}
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {/* Show success or error message */}
+      {message && <div className="message">{message}</div>}
     </div>
   );
 };
