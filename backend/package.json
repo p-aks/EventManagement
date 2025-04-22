@@ -19,8 +19,10 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "googleapis": "^148.0.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.10.1",
+    "pdfkit": "^0.17.0",
     "pg": "^8.14.1"
   }
 }

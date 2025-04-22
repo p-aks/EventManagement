@@ -177,31 +177,24 @@ app.post("/events", async (req, res) => {
 // Get all events
 app.get("/events", async (req, res) => {
   try {
-    const userRole = req.user.role;
-    let result;
-    if (userRole === "organizer") {
-      const result = await pool.query(`
-        SELECT 
-          e.*, 
-          COUNT(r.id) AS confirmed_rsvps
-        FROM events e
-        LEFT JOIN rsvps r 
-          ON e.id = r.event_id AND r.status = 'confirmed'
-        GROUP BY e.id
-      `);
-    
-      const events = result.rows;
-      const confirmed_rsvps = events.map(event => ({
-        event_id: event.id,
-        confirmed_rsvps: event.confirmed_rsvps,
-      }));
-    
-      res.status(200).json({ events, confirmed_rsvps });
-    
-    } else {
-      const result = await pool.query("SELECT * FROM events");
-      res.status(200).json({ events: result.rows });
-    }
+    const result = await pool.query(`
+      SELECT 
+        e.*, 
+        COUNT(r.id) AS confirmed_rsvps
+      FROM events e
+      LEFT JOIN rsvps r 
+        ON e.id = r.event_id AND r.status = 'confirmed'
+      GROUP BY e.id
+    `);
+
+    const events = result.rows;
+
+    const confirmed_rsvps = events.map(event => ({
+      event_id: event.id,
+      confirmed_rsvps: event.confirmed_rsvps,
+    }));
+
+    res.status(200).json({ events, confirmed_rsvps });
   } catch (err) {
     console.error("Error fetching events:", err);
     res.status(500).json({ message: "Server error" });
@@ -309,7 +302,7 @@ app.get("/google-events", async (req, res) => {
   }
 });
 //mail
-router.post("/send-reminder", authenticateToken, async (req, res) => {
+app.post("/send-reminder", async (req, res) => {
   const { eventId } = req.body;
   const userId = req.user.id; // Assuming token provides userId
 
@@ -514,6 +507,30 @@ app.post('/confirm-rsvp', async (req, res) => {
   } catch (error) {
     console.error("Error confirming RSVP or sending email:", error);
     res.status(500).send('Error processing RSVP or sending email');
+  }
+});
+
+//pdf server
+app.get('/api/export-pdf', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT name, email FROM users`);
+    const attendees = result.rows;
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="attendees.pdf"');
+
+    doc.pipe(res);
+    doc.fontSize(18).text('Attendee List', { align: 'center' }).moveDown();
+
+    attendees.forEach(user => {
+      doc.fontSize(12).text(`${user.name} (${user.email})`);
+    });
+
+    doc.end();
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    res.status(500).send('Failed to generate PDF');
   }
 });
 

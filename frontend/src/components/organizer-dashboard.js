@@ -16,7 +16,26 @@ const OrganizerDashboard = () => {
       navigate("/organizer-dashboard/event/:eventId"); // Modify with actual eventId
     }
   };
-
+  const downloadPDF = async () => {
+    try {
+      const response = await fetch('http://localhost:5002/api/export-pdf');
+      if (!response.ok) throw new Error('Failed to generate PDF');
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'attendees.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
+  };
+  
   return (
     <div className="organizer-dashboard">
       <h2>Organizer Dashboard</h2>
@@ -25,8 +44,9 @@ const OrganizerDashboard = () => {
       <div className="button-group">
         <button onClick={() => handleTabChange("createEvent")}>Create Event</button>
         <button onClick={() => handleTabChange("eventListing")}>Admin DashBoard</button>
-      </div>
+<button onClick={downloadPDF}>Export PDF</button>
 
+      </div>
       {/* Conditional rendering based on selected tab */}
       {selectedTab === "createEvent" && <CreateEventForm />}
       {selectedTab === "eventListing" && <EventListing />}

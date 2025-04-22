@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // ⬅️ Import navigate hook
+import { useNavigate } from "react-router-dom";
 
 const EventListing = () => {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState({ date: "", location: "", price: "" });
   const [filteredEvents, setFilteredEvents] = useState([]);
 
-  const navigate = useNavigate(); // ⬅️ Hook for programmatic navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("http://localhost:5002/events");
-        setEvents(response.data);
+        setEvents(response.data.events); // ✅ Accessing array inside object
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -30,12 +30,14 @@ const EventListing = () => {
           (filter.location
             ? event.location.toLowerCase().includes(filter.location.toLowerCase())
             : true) &&
-          (filter.price ? event.ticket_type === filter.price : true)
+          (filter.price
+            ? event.ticket_type.toLowerCase() === filter.price.toLowerCase()
+            : true)
         );
       });
       setFilteredEvents(result);
     } else {
-      setFilteredEvents([]);
+      setFilteredEvents(events); // ✅ Show all events if no filter applied
     }
   }, [filter, events]);
 
@@ -47,7 +49,7 @@ const EventListing = () => {
   };
 
   const handleViewDetails = (eventId) => {
-    navigate(`/event-details/${eventId}`); // ⬅️ Navigate to Event Details page
+    navigate(`/event-details/${eventId}`);
   };
 
   return (
@@ -82,26 +84,38 @@ const EventListing = () => {
       <div className="events">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
-            <div key={event.id} className="event-card" style={{ marginBottom: "20px", paddingBottom: "10px", borderBottom: "1px solid #ddd" }}>
+            <div
+              key={event.id}
+              className="event-card"
+              style={{
+                marginBottom: "20px",
+                paddingBottom: "10px",
+                borderBottom: "1px solid #ddd",
+              }}
+            >
               <h4>{event.title}</h4>
-              
-              {/* Event details with labels */}
               <p><strong>Date:</strong> {new Date(event.date).toLocaleString()}</p>
               <p><strong>Location:</strong> {event.location}</p>
               <p><strong>Price Type:</strong> {event.ticket_type}</p>
-              
-              {/* View Details button */}
-              <button onClick={() => handleViewDetails(event.id)} style={{ backgroundColor: "blue", color: "white", padding: "8px 16px", border: "none", cursor: "pointer" }}>
+              <button
+                onClick={() => handleViewDetails(event.id)}
+                style={{
+                  backgroundColor: "blue",
+                  color: "white",
+                  padding: "8px 16px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
                 View Details
               </button>
             </div>
           ))
         ) : (
-          <p>{filter.date || filter.location || filter.price ? "No matching events." : "No events available."}</p>
+          <p>No events available.</p>
         )}
       </div>
     </div>
   );
 };
-
 export default EventListing;
