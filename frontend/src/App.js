@@ -1,39 +1,27 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Home from "./components/Home";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
 import OrganizerDashboard from "./components/organizer-dashboard";
-import EventDetails from "./components/EventDetails" // Import the organizer dashboard
-import AttendeeDashboard from "./components/attendee-dashboard"; // Import the attendee dashboard
-import { useNavigate } from "react-router-dom";
+import EventDetails from "./components/EventDetails";
+import AttendeeDashboard from "./components/attendee-dashboard";
 
-// PrivateRoute component checks authentication and role before rendering the route
-const PrivateRoute = ({ element }) => {
-  const navigate = useNavigate();
+// ✅ Reusable private route that checks for required role
+const PrivateRoute = ({ element, requiredRole }) => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
+  const location = useLocation();
 
-  // If no token or role is found, redirect to the login page
   if (!token || !role) {
-    navigate("/login");
-    return null;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If the user is an organizer, allow access to the Organizer Dashboard
-  if (role === "organizer") {
-    return element;
-  } 
-
-  // If the user is an attendee, redirect to the attendee dashboard
-  if (role === "attendee") {
-    navigate("/attendee-dashboard");
-    return null;
+  if (role !== requiredRole) {
+    return <Navigate to={`/${role}-dashboard`} replace />;
   }
 
-  // Default case, in case the role is unknown
-  navigate("/login");
-  return null;
+  return element;
 };
 
 function App() {
@@ -44,21 +32,21 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Private route for organizer dashboard */}
+        {/* Organizer route */}
         <Route
           path="/organizer-dashboard"
-          element={<PrivateRoute element={<OrganizerDashboard />} />}
+          element={<PrivateRoute requiredRole="organizer" element={<OrganizerDashboard />} />}
         />
 
-        {/* Private route for attendee dashboard */}
+        {/* Event details (organizer view) */}
+        <Route path="/event-details/:eventId" element={<EventDetails />} />
+
+
+        {/* Attendee route */}
         <Route
           path="/attendee-dashboard"
-          element={<PrivateRoute element={<AttendeeDashboard />} />}
+          element={<PrivateRoute requiredRole="attendee" element={<AttendeeDashboard />} />}
         />
-        <Route
-      path="/organizer-dashboard/event/:eventId"
-      element={<EventDetails/>}  // Use 'element' prop here for React Router v6
-    />
       </Routes>
     </Router>
   );

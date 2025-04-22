@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import EventListing from "./EventListing"; // Component for browsing all events
 
 const AttendeeDashboard = () => {
   const [rsvpedEvents, setRsvpedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [showEventListing, setShowEventListing] = useState(false);
 
-  // Fetch RSVP'd events for the attendee
   useEffect(() => {
     const fetchRsvpedEvents = async () => {
       try {
@@ -34,18 +35,43 @@ const AttendeeDashboard = () => {
   }, []);
 
   const handleAddToCalendar = (event) => {
-    // Sync to Google Calendar logic will go here
-    console.log("Syncing event to Google Calendar:", event);
+    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      event.title
+    )}&dates=${formatGoogleCalendarDate(event.date)}/${formatGoogleCalendarDate(
+      event.date,
+      true
+    )}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(
+      event.location
+    )}`;
+
+    window.open(calendarUrl, "_blank");
+  };
+
+  const formatGoogleCalendarDate = (dateStr, isEnd = false) => {
+    const date = new Date(dateStr);
+    if (isEnd) date.setHours(date.getHours() + 1); // Add 1 hour for end time
+    return date.toISOString().replace(/[-:]|\.\d{3}/g, ""); // Format for Google Calendar
   };
 
   const handleEmailReminder = (event) => {
-    // Trigger email reminder functionality via SendGrid/Nodemailer
     console.log("Sending email reminder for event:", event);
+    // Add actual email sending logic here (optional)
+  };
+
+  const handleViewEvents = () => {
+    setShowEventListing(true); // Show all events
   };
 
   return (
     <div className="attendee-dashboard">
       <h2>Attendee Dashboard</h2>
+
+      <button onClick={handleViewEvents} style={{ marginBottom: "20px" }}>
+        View All Events
+      </button>
+
+      {showEventListing && <EventListing />} {/* Show event browser */}
+
       {loading ? (
         <p>Loading your RSVP'd events...</p>
       ) : (
@@ -61,9 +87,14 @@ const AttendeeDashboard = () => {
                   <p>Date: {new Date(event.date).toLocaleString()}</p>
                   <p>Location: {event.location}</p>
                   <p>Ticket Type: {event.ticketType}</p>
-                  <button onClick={() => handleAddToCalendar(event)}>
-                    Add to Google Calendar
-                  </button>
+
+                  {/* Show Google Calendar button only if RSVP is confirmed */}
+                  {event.isRSVPConfirmed && (
+                    <button onClick={() => handleAddToCalendar(event)}>
+                      Add to Google Calendar
+                    </button>
+                  )}
+
                   <button onClick={() => handleEmailReminder(event)}>
                     Send Email Reminder
                   </button>

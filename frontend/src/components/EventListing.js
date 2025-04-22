@@ -47,7 +47,7 @@ const EventListing = () => {
   };
 
   const handleViewDetails = (eventId) => {
-    navigate(`/organizer-dashboard/event/${eventId}`); // ⬅️ Navigate to Event Details page
+    navigate(`/event-details/${eventId}`); // ⬅️ Navigate to Event Details page
   };
 
   return (

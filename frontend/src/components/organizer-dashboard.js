@@ -25,14 +25,11 @@ const OrganizerDashboard = () => {
       <div className="button-group">
         <button onClick={() => handleTabChange("createEvent")}>Create Event</button>
         <button onClick={() => handleTabChange("eventListing")}>Event Listing</button>
-        <button onClick={() => handleTabChange("eventDetails")}>Event Details</button>
       </div>
 
       {/* Conditional rendering based on selected tab */}
       {selectedTab === "createEvent" && <CreateEventForm />}
       {selectedTab === "eventListing" && <EventListing />}
-      {selectedTab === "eventDetails" && <EventDetails />}
-
       {/* Nested Routes for specific event details */}
       <Routes>
         <Route path="event/:eventId" element={<EventDetails />} />
