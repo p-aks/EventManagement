@@ -190,10 +190,31 @@ app.get("/events/:eventId", async (req, res) => {
   }
 });
 
+//ticket fetching 
+app.get("/tickets/event/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT quantity FROM tickets WHERE event_id = $1",
+      [eventId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No tickets found for this event" });
+    }
+
+    // Assuming one ticket type per event
+    res.status(200).json({ availableTickets: result.rows[0].quantity });
+  } catch (error) {
+    console.error("Error fetching ticket availability:", error);
+    res.status(500).json({ message: "Failed to fetch ticket availability" });
+  }
+});
 // RSVP to event
 app.post("/rsvp", async (req, res) => {
   const { eventId, userId } = req.body;
-
+  console.log(req.body);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");

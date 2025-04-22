@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // ⬅️ Import navigate hook
 
 const EventListing = () => {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState({ date: "", location: "", price: "" });
   const [filteredEvents, setFilteredEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null); // For showing event details
+
+  const navigate = useNavigate(); // ⬅️ Hook for programmatic navigation
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("http://localhost:5000/events");
-        setEvents(response.data); // Assuming response is an array
+        setEvents(response.data);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -21,7 +23,6 @@ const EventListing = () => {
   }, []);
 
   useEffect(() => {
-    // Filter only if at least one filter is selected
     if (filter.date || filter.location || filter.price) {
       const result = events.filter((event) => {
         return (
@@ -34,10 +35,8 @@ const EventListing = () => {
       });
       setFilteredEvents(result);
     } else {
-      setFilteredEvents([]); // Initial empty view
+      setFilteredEvents([]);
     }
-
-    setSelectedEvent(null); // Reset selected event when filters change
   }, [filter, events]);
 
   const handleFilterChange = (e) => {
@@ -47,8 +46,8 @@ const EventListing = () => {
     });
   };
 
-  const handleViewDetails = (event) => {
-    setSelectedEvent(event);
+  const handleViewDetails = (eventId) => {
+    navigate(`/organizer-dashboard/event/${eventId}`); // ⬅️ Navigate to Event Details page
   };
 
   return (
@@ -65,16 +64,15 @@ const EventListing = () => {
           onChange={handleFilterChange}
         />
         <label>Location:</label>
-        <input
-          type="text"
-          name="location"
-          placeholder="Search by location"
-          value={filter.location}
-          onChange={handleFilterChange}
-        />
+        <select name="location" value={filter.location} onChange={handleFilterChange}>
+          <option value="">Select Location </option>
+          <option value="physical">Physical</option>
+          <option value="virtual">Virtual</option>
+        </select>
+
         <label>Price:</label>
         <select name="price" value={filter.price} onChange={handleFilterChange}>
-          <option value="">Select Price</option>
+          <option value="">Select Type</option>
           <option value="free">Free</option>
           <option value="paid">Paid</option>
         </select>
@@ -84,30 +82,24 @@ const EventListing = () => {
       <div className="events">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
-            <div key={event.id} className="event-card">
+            <div key={event.id} className="event-card" style={{ marginBottom: "20px", paddingBottom: "10px", borderBottom: "1px solid #ddd" }}>
               <h4>{event.title}</h4>
-              <p>{new Date(event.date).toLocaleString()}</p>
-              <p>{event.location}</p>
-              <p>{event.ticket_type}</p>
-              <button onClick={() => handleViewDetails(event)}>View Details</button>
+              
+              {/* Event details with labels */}
+              <p><strong>Date:</strong> {new Date(event.date).toLocaleString()}</p>
+              <p><strong>Location:</strong> {event.location}</p>
+              <p><strong>Price Type:</strong> {event.ticket_type}</p>
+              
+              {/* View Details button */}
+              <button onClick={() => handleViewDetails(event.id)} style={{ backgroundColor: "blue", color: "white", padding: "8px 16px", border: "none", cursor: "pointer" }}>
+                View Details
+              </button>
             </div>
           ))
         ) : (
-          <p>{filter.date || filter.location || filter.price ? "No matching events." : ""}</p>
+          <p>{filter.date || filter.location || filter.price ? "No matching events." : "No events available."}</p>
         )}
       </div>
-
-      {/* Event Details */}
-      {selectedEvent && (
-        <div className="event-details" style={{ marginTop: "20px" }}>
-          <h3>Event Details</h3>
-          <p><strong>Title:</strong> {selectedEvent.title}</p>
-          <p><strong>Description:</strong> {selectedEvent.description}</p>
-          <p><strong>Date:</strong> {new Date(selectedEvent.date).toLocaleString()}</p>
-          <p><strong>Location:</strong> {selectedEvent.location}</p>
-          <p><strong>Ticket Type:</strong> {selectedEvent.ticket_type}</p>
-        </div>
-      )}
     </div>
   );
 };

@@ -28,7 +28,8 @@ const Login = () => {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("role", response.data.user.role);  // Store role for future use
+        localStorage.setItem("role", response.data.user.role); 
+        localStorage.setItem("userId", response.data.user.id); // Store role for future use
         console.log("User role:", response.data.user.role);
         setMessage(response.data.message || "Login successful");
 

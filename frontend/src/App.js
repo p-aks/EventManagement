@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/Home";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
-import OrganizerDashboard from "./components/organizer-dashboard"; // Import the organizer dashboard
+import OrganizerDashboard from "./components/organizer-dashboard";
+import EventDetails from "./components/EventDetails" // Import the organizer dashboard
 import AttendeeDashboard from "./components/attendee-dashboard"; // Import the attendee dashboard
 import { useNavigate } from "react-router-dom";
 
@@ -54,6 +55,10 @@ function App() {
           path="/attendee-dashboard"
           element={<PrivateRoute element={<AttendeeDashboard />} />}
         />
+        <Route
+      path="/organizer-dashboard/event/:eventId"
+      element={<EventDetails/>}  // Use 'element' prop here for React Router v6
+    />
       </Routes>
     </Router>
   );
