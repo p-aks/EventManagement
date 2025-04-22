@@ -11,6 +11,14 @@ const EventDetails = () => {
   const [error, setError] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
   const [rsvpedEvents, setRsvpedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -135,14 +143,20 @@ const EventDetails = () => {
 
   return (
     <div className="event-details" style={{ padding: "20px" }}>
-      <h2>{event.title}</h2>
-      <p>{event.description}</p>
+    <h2>{event.title}</h2>
+    <p>{event.description}</p>
+  
+    {role ==="organizer"&& (
+      <p><strong>Confirmed RSVPs:</strong> {event.confirmed_rsvps || 0}</p>
 
-      {ticketAvailability !== null && (
-        <p><strong>Tickets Available:</strong> {ticketAvailability}</p>
-      )}
-
-      {!showConfirmation ? (
+    )}
+  
+    {ticketAvailability !== null && (
+      <p><strong>Tickets Available:</strong> {ticketAvailability}</p>
+    )}
+  
+    {role === "user" && (
+      !showConfirmation ? (
         isRSVPed ? (
           <div>
             <button onClick={handleCancelRSVP} style={{ backgroundColor: "red", color: "white" }}>
@@ -166,54 +180,45 @@ const EventDetails = () => {
         )
       ) : (
         <div>
-          <button onClick={handleRSVP} style={{ backgroundColor: "green", color: "white" }}>
+          <button onClick={handleRSVP} style={{ backgroundColor: "green", color: "white", gap: "10px" }}>
             Confirm Attendance
           </button>
           <button onClick={() => setShowConfirmation(false)} style={{ backgroundColor: "gray", color: "white" }}>
             Cancel
           </button>
         </div>
-      )}
-
-      {message && <p style={{ color: "green", marginTop: "10px" }}>{message}</p>}
-
-      {rsvpedEvents.length > 0 && (
-        <div>
-          <h3>Your RSVP'd Events</h3>
-          <ul>
-            {rsvpedEvents.map((event) => (
-              <li key={event._id} className="event-item">
-                <h4>{event.title}</h4>
-                <p>{event.description}</p>
-                <p>Date: {new Date(event.date).toLocaleString()}</p>
-                <p>Location: {event.location}</p>
-                <p>Ticket Type: {event.ticketType}</p>
-
-                {console.log("Event RSVP confirmed:", event.isRSVPConfirmed)}
-
-                <button onClick={() => handleEmailReminder(event)}>
-                  Send Email Reminder
-                </button>
-                {event.isRSVPConfirmed ? (
-                  <>
-                    <button onClick={() => handleAddToCalendar(event)}>
-                      Add to Google Calendar
-                    </button>
-                    <button onClick={() => handleEmailReminder(event)}>
-                      Send Email Reminder
-                    </button>
-                  </>
-                ) : (
-                  <button onClick={() => handleRSVP(event)}>
-                    Confirm RSVP
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
+      )
+    )}
+  
+    {message && <p style={{ color: "green", marginTop: "10px" }}>{message}</p>}
+  
+    {rsvpedEvents.length > 0 && (
+      <div>
+        <h3>Your RSVP'd Events</h3>
+        <ul>
+          {rsvpedEvents.map((event) => (
+            <li key={event._id} className="event-item">
+              <h4>{event.title}</h4>
+              <p>{event.description}</p>
+              <p>Date: {new Date(event.date).toLocaleString()}</p>
+              <p>Location: {event.location}</p>
+              <p>Ticket Type: {event.ticketType}</p>
+  
+              {event.isRSVPConfirmed ? (
+                <>
+                  <button onClick={() => handleAddToCalendar(event)}>Add to Google Calendar</button>
+                  <button onClick={() => handleEmailReminder(event)}>Send Email Reminder</button>
+                </>
+              ) : (
+                <button onClick={() => handleRSVP(event)}>Confirm RSVP</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+  
   );
 };
 

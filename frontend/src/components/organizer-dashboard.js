@@ -24,7 +24,7 @@ const OrganizerDashboard = () => {
       {/* Navigation buttons */}
       <div className="button-group">
         <button onClick={() => handleTabChange("createEvent")}>Create Event</button>
-        <button onClick={() => handleTabChange("eventListing")}>Event Listing</button>
+        <button onClick={() => handleTabChange("eventListing")}>Admin DashBoard</button>
       </div>
 
       {/* Conditional rendering based on selected tab */}

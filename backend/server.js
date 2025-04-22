@@ -177,11 +177,34 @@ app.post("/events", async (req, res) => {
 // Get all events
 app.get("/events", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM events");
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("Error retrieving events:", error);
-    res.status(400).json({ message: "Failed to retrieve events", error: error.message });
+    const userRole = req.user.role;
+    let result;
+    if (userRole === "organizer") {
+      const result = await pool.query(`
+        SELECT 
+          e.*, 
+          COUNT(r.id) AS confirmed_rsvps
+        FROM events e
+        LEFT JOIN rsvps r 
+          ON e.id = r.event_id AND r.status = 'confirmed'
+        GROUP BY e.id
+      `);
+    
+      const events = result.rows;
+      const confirmed_rsvps = events.map(event => ({
+        event_id: event.id,
+        confirmed_rsvps: event.confirmed_rsvps,
+      }));
+    
+      res.status(200).json({ events, confirmed_rsvps });
+    
+    } else {
+      const result = await pool.query("SELECT * FROM events");
+      res.status(200).json({ events: result.rows });
+    }
+  } catch (err) {
+    console.error("Error fetching events:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
