@@ -3,17 +3,15 @@ import axios from "axios";
 
 const EventListing = () => {
   const [events, setEvents] = useState([]);
-  const [filter, setFilter] = useState({
-    date: "",
-    location: "",
-    price: "",
-  });
+  const [filter, setFilter] = useState({ date: "", location: "", price: "" });
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null); // For showing event details
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("http://localhost:5000/events");
-        setEvents(response.data); // ✅ Backend sends array directly
+        setEvents(response.data); // Assuming response is an array
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -22,6 +20,26 @@ const EventListing = () => {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    // Filter only if at least one filter is selected
+    if (filter.date || filter.location || filter.price) {
+      const result = events.filter((event) => {
+        return (
+          (filter.date ? event.date.startsWith(filter.date) : true) &&
+          (filter.location
+            ? event.location.toLowerCase().includes(filter.location.toLowerCase())
+            : true) &&
+          (filter.price ? event.ticket_type === filter.price : true)
+        );
+      });
+      setFilteredEvents(result);
+    } else {
+      setFilteredEvents([]); // Initial empty view
+    }
+
+    setSelectedEvent(null); // Reset selected event when filters change
+  }, [filter, events]);
+
   const handleFilterChange = (e) => {
     setFilter({
       ...filter,
@@ -29,15 +47,9 @@ const EventListing = () => {
     });
   };
 
-  const filteredEvents = events.filter((event) => {
-    return (
-      (filter.date ? event.date.startsWith(filter.date) : true) &&
-      (filter.location
-        ? event.location.toLowerCase().includes(filter.location.toLowerCase())
-        : true) &&
-      (filter.price ? event.ticket_type === filter.price : true)
-    );
-  });
+  const handleViewDetails = (event) => {
+    setSelectedEvent(event);
+  };
 
   return (
     <div className="event-listing">
@@ -68,22 +80,34 @@ const EventListing = () => {
         </select>
       </div>
 
-      {/* Events Display */}
+      {/* Events */}
       <div className="events">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
             <div key={event.id} className="event-card">
               <h4>{event.title}</h4>
-              <p>Date: {new Date(event.date).toLocaleString()}</p>
-              <p>Location: {event.location}</p>
-              <p>Price: {event.ticket_type}</p>
-              <button>View Details</button>
+              <p>{new Date(event.date).toLocaleString()}</p>
+              <p>{event.location}</p>
+              <p>{event.ticket_type}</p>
+              <button onClick={() => handleViewDetails(event)}>View Details</button>
             </div>
           ))
         ) : (
-          <p>No events found matching the filters.</p>
+          <p>{filter.date || filter.location || filter.price ? "No matching events." : ""}</p>
         )}
       </div>
+
+      {/* Event Details */}
+      {selectedEvent && (
+        <div className="event-details" style={{ marginTop: "20px" }}>
+          <h3>Event Details</h3>
+          <p><strong>Title:</strong> {selectedEvent.title}</p>
+          <p><strong>Description:</strong> {selectedEvent.description}</p>
+          <p><strong>Date:</strong> {new Date(selectedEvent.date).toLocaleString()}</p>
+          <p><strong>Location:</strong> {selectedEvent.location}</p>
+          <p><strong>Ticket Type:</strong> {selectedEvent.ticket_type}</p>
+        </div>
+      )}
     </div>
   );
 };

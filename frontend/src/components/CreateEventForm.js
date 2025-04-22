@@ -7,13 +7,23 @@ const CreateEventForm = () => {
   const [dateTime, setDateTime] = useState("");
   const [location, setLocation] = useState("");
   const [ticketType, setTicketType] = useState("free");
+  const [ticketQuantity, setTicketQuantity] = useState(0);
+  const [ticketPrice, setTicketPrice] = useState(0); // New: for paid ticket price
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const eventData = { title, description, date:dateTime, location, ticket_type:ticketType,  organizer_id:1};
+    const eventData = {
+      title,
+      description,
+      date: dateTime,
+      location,
+      ticket_type: ticketType,
+      ticket_quantity: Number(ticketQuantity),
+      ticket_price: ticketType === "paid" ? Number(ticketPrice) : 0,
+      organizer_id: 1, // Replace with dynamic ID if needed
+    };
 
-    // Send data to backend
     axios
       .post("http://localhost:5000/events", eventData)
       .then((response) => {
@@ -22,6 +32,8 @@ const CreateEventForm = () => {
         setDescription("");
         setDateTime("");
         setLocation("");
+        setTicketQuantity(0);
+        setTicketPrice(0);
       })
       .catch((error) => {
         console.error("Error creating event:", error);
@@ -42,6 +54,7 @@ const CreateEventForm = () => {
             required
           />
         </div>
+
         <div className="form-group">
           <label>Event Description</label>
           <textarea
@@ -50,6 +63,7 @@ const CreateEventForm = () => {
             required
           />
         </div>
+
         <div className="form-group">
           <label>Date/Time</label>
           <input
@@ -59,6 +73,7 @@ const CreateEventForm = () => {
             required
           />
         </div>
+
         <div className="form-group">
           <label>Location</label>
           <select
@@ -71,6 +86,7 @@ const CreateEventForm = () => {
             <option value="virtual">Virtual</option>
           </select>
         </div>
+
         <div className="form-group">
           <label>Ticket Type</label>
           <select
@@ -82,6 +98,33 @@ const CreateEventForm = () => {
             <option value="paid">Paid</option>
           </select>
         </div>
+
+        {/* Always show ticket quantity */}
+        <div className="form-group">
+          <label>Ticket Quantity</label>
+          <input
+            type="number"
+            value={ticketQuantity}
+            onChange={(e) => setTicketQuantity(e.target.value)}
+            min="0"
+            required
+          />
+        </div>
+
+        {/* Only show price field for paid tickets */}
+        {ticketType === "paid" && (
+          <div className="form-group">
+            <label>Ticket Price ($)</label>
+            <input
+              type="number"
+              value={ticketPrice}
+              onChange={(e) => setTicketPrice(e.target.value)}
+              min="1"
+              required
+            />
+          </div>
+        )}
+
         <button type="submit">Create Event</button>
       </form>
     </div>
