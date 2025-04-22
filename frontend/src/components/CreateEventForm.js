@@ -25,7 +25,7 @@ const CreateEventForm = () => {
     };
 
     axios
-      .post("http://localhost:5000/events", eventData)
+      .post("http://localhost:5002/events", eventData)
       .then((response) => {
         alert("✅ Event created successfully!");
         setTitle("");

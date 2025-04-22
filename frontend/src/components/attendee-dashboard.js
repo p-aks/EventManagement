@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import EventListing from "./EventListing"; // Component for browsing all events
+import EventListing from "./EventListing";
 
 const AttendeeDashboard = () => {
   const [rsvpedEvents, setRsvpedEvents] = useState([]);
@@ -12,17 +12,17 @@ const AttendeeDashboard = () => {
     const fetchRsvpedEvents = async () => {
       try {
         const token = localStorage.getItem("token");
-
         if (!token) {
           setMessage("You need to log in to view your events.");
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/rsvp-events", {
+        const response = await axios.get("http://localhost:5002/rsvp-events", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setRsvpedEvents(response.data);
+        console.log("RSVP Events Response:", response.data); // Debugging the response
+        setRsvpedEvents(response.data); // Ensure this includes the RSVP object
         setLoading(false);
       } catch (error) {
         console.error("Error fetching RSVP'd events:", error);
@@ -34,32 +34,44 @@ const AttendeeDashboard = () => {
     fetchRsvpedEvents();
   }, []);
 
-  const handleAddToCalendar = (event) => {
-    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-      event.title
-    )}&dates=${formatGoogleCalendarDate(event.date)}/${formatGoogleCalendarDate(
-      event.date,
-      true
-    )}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(
-      event.location
-    )}`;
+  // RSVP confirmation function
+  const handleRSVPConfirmation = async (event) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userEmail = localStorage.getItem("userEmail"); // Assuming you have user email stored in localStorage
 
-    window.open(calendarUrl, "_blank");
-  };
+      if (!token || !userEmail) {
+        setMessage("You need to log in to confirm your RSVP.");
+        return;
+      }
 
-  const formatGoogleCalendarDate = (dateStr, isEnd = false) => {
-    const date = new Date(dateStr);
-    if (isEnd) date.setHours(date.getHours() + 1); // Add 1 hour for end time
-    return date.toISOString().replace(/[-:]|\.\d{3}/g, ""); // Format for Google Calendar
-  };
+      const response = await axios.post("http://localhost:5002/api/confirm-rsvp", {
+        eventId: event._id,
+        email: userEmail,
+      });
 
-  const handleEmailReminder = (event) => {
-    console.log("Sending email reminder for event:", event);
-    // Add actual email sending logic here (optional)
+      if (response.status === 201) {
+        alert("RSVP confirmed and reminder sent.");
+
+        // Update event status locally
+        setRsvpedEvents((prev) =>
+          prev.map((e) =>
+            e._id === event._id
+              ? { ...e, rsvp: { ...e.rsvp, status: "confirmed" } }
+              : e
+          )
+        );
+      } else {
+        alert("Error confirming RSVP.");
+      }
+    } catch (error) {
+      console.error("RSVP error:", error);
+      alert("Something went wrong.");
+    }
   };
 
   const handleViewEvents = () => {
-    setShowEventListing(true); // Show all events
+    setShowEventListing(true);
   };
 
   return (
@@ -70,7 +82,7 @@ const AttendeeDashboard = () => {
         View All Events
       </button>
 
-      {showEventListing && <EventListing />} {/* Show event browser */}
+      {showEventListing && <EventListing />}
 
       {loading ? (
         <p>Loading your RSVP'd events...</p>
@@ -88,15 +100,8 @@ const AttendeeDashboard = () => {
                   <p>Location: {event.location}</p>
                   <p>Ticket Type: {event.ticketType}</p>
 
-                  {/* Show Google Calendar button only if RSVP is confirmed */}
-                  {event.isRSVPConfirmed && (
-                    <button onClick={() => handleAddToCalendar(event)}>
-                      Add to Google Calendar
-                    </button>
-                  )}
-
-                  <button onClick={() => handleEmailReminder(event)}>
-                    Send Email Reminder
+                  <button onClick={() => handleRSVPConfirmation(event)}>
+                    {event.rsvp?.status === "confirmed" ? "RSVP Confirmed" : "Confirm RSVP"}
                   </button>
                 </li>
               ))}

@@ -11,15 +11,17 @@ const EventDetails = () => {
   const [error, setError] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [rsvpedEvents, setRsvpedEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch event details + ticket availability
+  // Fetch event details and ticket availability
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const eventRes = await axios.get(`http://localhost:5000/events/${eventId}`);
+        const eventRes = await axios.get(`http://localhost:5002/events/${eventId}`);
         setEvent(eventRes.data);
 
-        const ticketRes = await axios.get(`http://localhost:5000/tickets/event/${eventId}`);
+        const ticketRes = await axios.get(`http://localhost:5002/tickets/event/${eventId}`);
         setTicketAvailability(ticketRes.data.availableTickets);
       } catch (err) {
         console.error("Error fetching event details:", err);
@@ -34,14 +36,14 @@ const EventDetails = () => {
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId && storedUserId !== "null") {
-      setUserId(parseInt(storedUserId)); // ✅ Ensure it's a number
+      setUserId(parseInt(storedUserId)); // Ensure it's a number
     }
   }, []);
 
   // Refresh ticket availability after RSVP or cancel
   const refreshTickets = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/tickets/event/${eventId}`);
+      const res = await axios.get(`http://localhost:5002/tickets/event/${eventId}`);
       setTicketAvailability(res.data.availableTickets);
     } catch (err) {
       console.error("Error refreshing ticket availability:", err);
@@ -63,7 +65,7 @@ const EventDetails = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/rsvp", {
+      const res = await axios.post("http://localhost:5002/rsvp", {
         eventId: parseInt(eventId),
         userId: parseInt(userId),
       });
@@ -89,7 +91,7 @@ const EventDetails = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/cancel-rsvp", {
+      const res = await axios.post("http://localhost:5002/cancel-rsvp", {
         eventId: parseInt(eventId),
         userId: parseInt(userId),
       });
@@ -107,6 +109,27 @@ const EventDetails = () => {
     }
   };
 
+  // Handle sending email reminder
+  const handleEmailReminder = async (event) => {
+    try {
+      const res = await axios.post("http://localhost:5002/send-email-reminder", {
+        eventId: event._id,
+        userId: userId,
+      });
+      if (res.data.message === "Email reminder sent successfully.") {
+        alert("Reminder email sent!");
+      }
+    } catch (error) {
+      alert("Failed to send email reminder.");
+    }
+  };
+
+  // Handle adding event to Google Calendar
+  const handleAddToCalendar = (event) => {
+    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${event.title}&details=${event.description}&dates=${new Date(event.date).toISOString()}&location=${event.location}`;
+    window.open(googleCalendarUrl, "_blank");
+  };
+
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>Loading event details...</div>;
 
@@ -121,9 +144,17 @@ const EventDetails = () => {
 
       {!showConfirmation ? (
         isRSVPed ? (
-          <button onClick={handleCancelRSVP} style={{ backgroundColor: "red", color: "white" }}>
-            Cancel RSVP
-          </button>
+          <div>
+            <button onClick={handleCancelRSVP} style={{ backgroundColor: "red", color: "white" }}>
+              Cancel RSVP
+            </button>
+            <button onClick={() => handleAddToCalendar(event)} style={{ backgroundColor: "blue", color: "white" }}>
+              Add to Google Calendar
+            </button>
+            <button onClick={() => handleEmailReminder(event)} style={{ backgroundColor: "orange", color: "white" }}>
+              Send Email Reminder
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => setShowConfirmation(true)}
@@ -145,6 +176,43 @@ const EventDetails = () => {
       )}
 
       {message && <p style={{ color: "green", marginTop: "10px" }}>{message}</p>}
+
+      {rsvpedEvents.length > 0 && (
+        <div>
+          <h3>Your RSVP'd Events</h3>
+          <ul>
+            {rsvpedEvents.map((event) => (
+              <li key={event._id} className="event-item">
+                <h4>{event.title}</h4>
+                <p>{event.description}</p>
+                <p>Date: {new Date(event.date).toLocaleString()}</p>
+                <p>Location: {event.location}</p>
+                <p>Ticket Type: {event.ticketType}</p>
+
+                {console.log("Event RSVP confirmed:", event.isRSVPConfirmed)}
+
+                <button onClick={() => handleEmailReminder(event)}>
+                  Send Email Reminder
+                </button>
+                {event.isRSVPConfirmed ? (
+                  <>
+                    <button onClick={() => handleAddToCalendar(event)}>
+                      Add to Google Calendar
+                    </button>
+                    <button onClick={() => handleEmailReminder(event)}>
+                      Send Email Reminder
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => handleRSVP(event)}>
+                    Confirm RSVP
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

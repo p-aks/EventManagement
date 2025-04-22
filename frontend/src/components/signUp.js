@@ -22,7 +22,7 @@ const SignUp = () => {
 
     try {
       // Sending data to the backend signup API using Axios
-      const response = await axios.post("http://localhost:5000/signup", formData);
+      const response = await axios.post("http://localhost:5002/signup", formData);
 
       if (response.status === 201) {
         alert("Sign-up successful!");

@@ -23,7 +23,7 @@ const Login = () => {
     const loginData = { email, password };
 
     try {
-      const response = await axios.post("http://localhost:5000/login", loginData);
+      const response = await axios.post("http://localhost:5002/login", loginData);
       console.log("Full login response:", response);
 
       if (response.data.token) {
